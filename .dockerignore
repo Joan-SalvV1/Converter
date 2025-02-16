@@ -1,0 +1,4 @@
+conversionvenv
+.git
+__pycache__
+*.pyc
