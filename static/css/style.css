@@ -1,0 +1,71 @@
+:root {
+    --primary-color: #2A5C82;
+    --secondary-color: #5BA4E6;
+    --accent-color: #FF6B6B;
+}
+
+body {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+}
+
+.converter-card {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+}
+
+.converter-card:hover {
+    transform: translateY(-5px);
+}
+
+.upload-area {
+    border: 2px dashed var(--primary-color);
+    border-radius: 0.75rem;
+    background: rgba(42, 92, 130, 0.05);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+    background: rgba(42, 92, 130, 0.1);
+    border-color: var(--secondary-color);
+}
+
+.size-option {
+    border: 2px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.size-option:hover {
+    border-color: var(--secondary-color);
+    background: rgba(91, 164, 230, 0.05);
+}
+
+.size-option.selected {
+    border-color: var(--primary-color);
+    background: rgba(42, 92, 130, 0.1);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border: none;
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+    transform: scale(1.05);
+}
+
+.preview-image {
+    max-width: 200px;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+}

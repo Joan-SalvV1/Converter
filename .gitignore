@@ -1,0 +1,16 @@
+# Create a .gitignore file
+touch .gitignore
+
+# Add these lines to ignore unnecessary files
+echo "venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+uploads/
+.DS_Store
+.env
+*.ico
+*.png" > .gitignore
