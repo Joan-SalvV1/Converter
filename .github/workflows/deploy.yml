@@ -15,6 +15,8 @@ jobs:
           username: admin  # Usuario del VPS
           key: ${{ secrets.SSH_PRIVATE_KEY }}  # Clave SSH privada
           script: |
-            cd ~/paas/apps/Converter 
+            cd ~/paas/apps/Converter
+            git reset --hard HEAD      
+            git clean -fd              
             git pull origin main
             docker compose down && docker compose up -d --build
