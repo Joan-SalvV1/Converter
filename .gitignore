@@ -3,6 +3,7 @@ touch .gitignore
 
 # Add these lines to ignore unnecessary files
 echo "conversionvenv/
+conversionvenv/
 __pycache__/
 *.pyc
 *.pyo
