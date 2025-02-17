@@ -1,0 +1,20 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]  # Se ejecuta al hacer push a la rama main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # Máquina virtual de GitHub
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1  # Acción para conectarse por SSH
+        with:
+          host: ${{ secrets.VPS_IP }}  # IP de tu VPS
+          username: admin  # Usuario del VPS
+          key: ${{ secrets.SSH_PRIVATE_KEY }}  # Clave SSH privada
+          script: |
+            cd ~/paas/apps/Converter 
+            git pull origin main
+            docker compose down && docker compose up -d --build
