@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest  # Máquina virtual de GitHub
     steps:
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@main  # Acción para conectarse por SSH
+        uses: appleboy/ssh-action@v1.2.0  # Acción para conectarse por SSH
         with:
           host: ${{ secrets.VPS_IP }}  # IP de tu VPS
           username: admin  # Usuario del VPS
