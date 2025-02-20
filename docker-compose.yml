@@ -1,5 +1,10 @@
 services:
   web:
+    labels:
+      - "traefik.http.routers.myapp.rule=Host(`srv726877.hstgr.cloud`)"
+      - "traefik.http.routers.myapp.tls.certresolver=myresolver"
+    security-opt:
+      - seccomp=./seccomp.json
     build: .
     ports:
       - "8000:8000"
