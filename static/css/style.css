@@ -69,27 +69,3 @@ body {
     border-radius: 0.5rem;
     box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
 }
-
-.conversion-card {
-    border: 2px solid #dee2e6;
-    border-radius: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background: white;
-    height: 100%;
-}
-
-.conversion-card:hover {
-    border-color: var(--primary-color);
-    transform: translateY(-5px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-}
-
-.conversion-card.selected {
-    border-color: var(--primary-color);
-    background-color: rgba(42, 92, 130, 0.05);
-}
-
-.conversion-card .card-body {
-    padding: 2rem;
-}
