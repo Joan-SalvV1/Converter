@@ -4,27 +4,62 @@ import os
 from io import BytesIO
 
 app = Flask(__name__, static_url_path='/static')
-app.secret_key = 'your_secret_key_here'  # Needed for flash messages
+app.secret_key = 'your_secret_key_here'
 
 # Configure upload folder
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-def convert_png_to_ico(input_path, output_path, sizes=[(256, 256)]):
+# Supported formats
+SUPPORTED_INPUT_FORMATS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'webp'}
+SUPPORTED_OUTPUT_FORMATS = {
+    'ico': [(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)],
+    'png': [(256, 256), (512, 512), (1024, 1024)],
+    'jpg': [(256, 256), (512, 512), (1024, 1024)],
+    'webp': [(256, 256), (512, 512), (1024, 1024)],
+    'bmp': [(256, 256), (512, 512), (1024, 1024)],
+    'tiff': [(256, 256), (512, 512), (1024, 1024)],
+    'pdf': [(256, 256)]  # PDF solo soporta un tamaño
+}
+
+QUALITY_OPTIONS = {
+    'jpeg': [10, 30, 50, 70, 90],
+    'webp': [10, 30, 50, 70, 90]
+}
+
+def convert_image(input_path, output_path, output_format, quality=None, sizes=None):
     try:
         with Image.open(input_path) as img:
-            if img.size[0] < max(s[0] for s in sizes):
-                flash('Warning: Original image is smaller than requested sizes!', 'warning')
+            # Convertir a RGB si es necesario
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            
+            if output_format == 'ico':
+                # Convertir a ICO con múltiples tamaños
+                if sizes is None:
+                    sizes = SUPPORTED_OUTPUT_FORMATS['ico']
                 
-            icon_sizes = [img.resize(s, Image.Resampling.LANCZOS) for s in sizes]
-            icon_sizes[0].save(
-                output_path,
-                format="ICO",
-                append_images=icon_sizes[1:],
-                quality=100,
-                bitdepth=32
-            )
+                icon_sizes = [img.resize(s, Image.Resampling.LANCZOS) for s in sizes]
+                icon_sizes[0].save(
+                    output_path,
+                    format="ICO",
+                    append_images=icon_sizes[1:],
+                    quality=100,
+                    bitdepth=32
+                )
+            else:
+                # Convertir a otros formatos
+                if sizes:
+                    img = img.resize(sizes[0], Image.Resampling.LANCZOS)
+                
+                # Aplicar calidad si es necesario
+                save_kwargs = {}
+                if quality is not None:
+                    save_kwargs['quality'] = quality
+                
+                img.save(output_path, format=output_format.upper(), **save_kwargs)
+                
             return True
     except Exception as e:
         flash(f'Error: {str(e)}', 'error')
@@ -43,33 +78,44 @@ def index():
             return redirect(request.url)
             
         if file and allowed_file(file.filename):
-            # Get selected sizes from form
+            # Obtener parámetros del formulario
+            output_format = request.form.get('output_format')
+            quality = int(request.form.get('quality', 90)) if output_format in QUALITY_OPTIONS else None
             selected_sizes = request.form.getlist('sizes')
-            sizes = [tuple(map(int, size.split(','))) for size in selected_sizes]
+            sizes = [tuple(map(int, size.split(','))) for size in selected_sizes] if selected_sizes else None
             
-            # Generate unique filename
+            # Validar parámetros
+            if output_format not in SUPPORTED_OUTPUT_FORMATS:
+                flash('Invalid output format', 'error')
+                return redirect(request.url)
+                
+            if quality is not None and quality not in QUALITY_OPTIONS[output_format]:
+                flash('Invalid quality value', 'error')
+                return redirect(request.url)
+            
+            # Generar nombre de archivo único
             filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-            ico_filename = os.path.splitext(filename)[0] + '.ico'
+            output_filename = os.path.splitext(filename)[0] + f'.{output_format.lower()}'
             file.save(filename)
             
-            if convert_png_to_ico(filename, ico_filename, sizes):
-                # Return the converted file
+            if convert_image(filename, output_filename, output_format, quality, sizes):
+                # Devolver el archivo convertido
                 return send_file(
-                    ico_filename,
+                    output_filename,
                     as_attachment=True,
-                    download_name=os.path.basename(ico_filename)
+                    download_name=os.path.basename(output_filename)
                 )
                 
-            # Cleanup
+            # Limpieza
             os.remove(filename)
-            if os.path.exists(ico_filename):
-                os.remove(ico_filename)
+            if os.path.exists(output_filename):
+                os.remove(output_filename)
                 
     return render_template('index.html')
 
 def allowed_file(filename):
     return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in {'png'}
+           filename.rsplit('.', 1)[1].lower() in SUPPORTED_INPUT_FORMATS
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000) #Run the app on port 8000
+    app.run(host='0.0.0.0', port=8000)

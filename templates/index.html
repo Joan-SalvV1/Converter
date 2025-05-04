@@ -10,93 +10,129 @@
 </head>
 <body>
     <div class="container py-5">
-        <div class="container py-5">
-            <div class="converter-card p-4 p-lg-5 mx-auto" style="max-width: 800px;">
-                <div class="text-center mb-5">
-                    <h1 class="display-5 fw-bold mb-3 text-primary">
-                        <i class="fas fa-file-image me-2"></i>Cheetah Suite Pro
-                    </h1>
+        <div class="converter-card p-4 p-lg-5 mx-auto" style="max-width: 800px;">
+            <div class="text-center mb-5">
+                <h1 class="display-5 fw-bold mb-3 text-primary">
+                    <i class="fas fa-file-image me-2"></i>Cheetah Suite Pro
+                </h1>
                     <p class="lead text-muted">Image conversions</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                <div class="mb-4">
+                    <label class="form-label fw-bold mb-3">Upload Image File</label>
+                    <div class="upload-area p-5 text-center" onclick="document.getElementById('file').click()">
+                        <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                        <h5 class="mb-2">Drag & Drop or Click to Upload</h5>
+                        <p class="text-muted small mb-0">Supported formats: .png, .jpg, .gif, .bmp, .tiff, .webp (Max 10MB)</p>
+                        <input type="file" class="form-control d-none" name="file" id="file" accept=".png,.jpg,.jpeg,.gif,.bmp,.tiff,.webp" required>
+                    </div>
+                    <div id="preview-container" class="mt-3 text-center d-none">
+                        <img id="preview-image" class="preview-image" src="#" alt="Preview">
+                    </div>
                 </div>
-    
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-    
-                <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
-                    <div class="mb-4">
-                        <label class="form-label fw-bold mb-3">Upload PNG File</label>
-                        <div class="upload-area p-5 text-center" onclick="document.getElementById('file').click()">
-                            <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
-                            <h5 class="mb-2">Drag & Drop or Click to Upload</h5>
-                            <p class="text-muted small mb-0">Supported format: .png (Max 10MB)</p>
-                            <input type="file" class="form-control d-none" name="file" id="file" accept=".png" required>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold mb-3">Select Output Format</label>
+                    <select class="form-select" name="output_format" required>
+                        <option value="ico">ICO (Icon)</option>
+                        <option value="png">PNG</option>
+                        <option value="jpg">JPEG</option>
+                        <option value="webp">WEBP</option>
+                        <option value="bmp">BMP</option>
+                        <option value="tiff">TIFF</option>
+                        <option value="pdf">PDF</option>
+                    </select>
+                </div>
+
+                <div class="mb-4" id="quality-options">
+                    <label class="form-label fw-bold mb-3">Quality (for JPEG and WEBP)</label>
+                    <div class="row g-3">
+                        <div class="col-6 col-md-4">
+                            <label class="quality-option d-block">
+                                <input type="radio" name="quality" value="10" class="d-none">
+                                <span class="d-flex align-items-center">
+                                    <i class="fas fa-circle text-danger me-2"></i>
+                                    Low (10%)
+                                </span>
+                            </label>
                         </div>
-                        <div id="preview-container" class="mt-3 text-center d-none">
-                            <img id="preview-image" class="preview-image" src="#" alt="Preview">
+                        <div class="col-6 col-md-4">
+                            <label class="quality-option d-block">
+                                <input type="radio" name="quality" value="50" class="d-none">
+                                <span class="d-flex align-items-center">
+                                    <i class="fas fa-circle text-warning me-2"></i>
+                                    Medium (50%)
+                                </span>
+                            </label>
                         </div>
-                    </div>
-    
-                    <div class="mb-4">
-                        <label class="form-label fw-bold mb-3">Select Icon Sizes</label>
-                        <div class="row g-3">
-                            <div class="col-6 col-md-4">
-                                <label class="size-option d-block">
-                                    <input type="checkbox" name="sizes" value="16,16" class="form-check-input">
-                                    <span class="d-block fw-medium">16x16 px</span>
-                                    <small class="text-muted">Favicon</small>
-                                </label>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <label class="size-option d-block">
-                                    <input type="checkbox" name="sizes" value="32,32" class="form-check-input">
-                                    <span class="d-block fw-medium">32x32 px</span>
-                                    <small class="text-muted">Taskbar</small>
-                                </label>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <label class="size-option d-block">
-                                    <input type="checkbox" name="sizes" value="64,64" class="form-check-input">
-                                    <span class="d-block fw-medium">64x64 px</span>
-                                    <small class="text-muted">Application</small>
-                                </label>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <label class="size-option d-block">
-                                    <input type="checkbox" name="sizes" value="128,128" class="form-check-input">
-                                    <span class="d-block fw-medium">128x128 px</span>
-                                    <small class="text-muted">HD Display</small>
-                                </label>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <label class="size-option d-block">
-                                    <input type="checkbox" name="sizes" value="256,256" class="form-check-input">
-                                    <span class="d-block fw-medium">256x256 px</span>
-                                    <small class="text-muted">4K Ready</small>
-                                </label>
-                            </div>
+                        <div class="col-6 col-md-4">
+                            <label class="quality-option d-block">
+                                <input type="radio" name="quality" value="90" class="d-none" checked>
+                                <span class="d-flex align-items-center">
+                                    <i class="fas fa-circle text-success me-2"></i>
+                                    High (90%)
+                                </span>
+                            </label>
                         </div>
                     </div>
-    
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fas fa-file-download me-2"></i>Convert Now
-                        </button>
+                </div>
+
+                <div class="mb-4" id="size-options">
+                    <label class="form-label fw-bold mb-3">Select Output Sizes</label>
+                    <div class="row g-3">
+                        <div class="col-6 col-md-4">
+                            <label class="size-option d-block">
+                                <input type="checkbox" name="sizes" value="256,256" class="d-none">
+                                <span class="d-flex align-items-center">
+                                    <i class="fas fa-square me-2"></i>
+                                    256x256
+                                </span>
+                            </label>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="size-option d-block">
+                                <input type="checkbox" name="sizes" value="512,512" class="d-none">
+                                <span class="d-flex align-items-center">
+                                    <i class="fas fa-square me-2"></i>
+                                    512x512
+                                </span>
+                            </label>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="size-option d-block">
+                                <input type="checkbox" name="sizes" value="1024,1024" class="d-none">
+                                <span class="d-flex align-items-center">
+                                    <i class="fas fa-square me-2"></i>
+                                    1024x1024
+                                </span>
+                            </label>
+                        </div>
                     </div>
-                </form>
-            </div>
-    
-            <div class="text-center mt-5 text-muted small">
-                <p class="mb-1">© 2025 Cheeta . All rights reserved.</p>
-                <p class="mb-0">Secure cloud-based conversion · Enterprise-grade infrastructure</p>
-            </div>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary btn-lg px-5">
+                        <i class="fas fa-convert me-2"></i>Convert
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="text-center mt-5 text-muted small">
+            <p class="mb-1"> 2025 Cheeta . All rights reserved.</p>
+            <p class="mb-0">Secure cloud-based conversion · Enterprise-grade infrastructure</p>
         </div>
     </div>
 
