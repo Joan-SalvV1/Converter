@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadArea = document.querySelector('.upload-area');
     const previewContainer = document.getElementById('preview-container');
     const previewImage = document.getElementById('preview-image');
+    const loading = document.getElementById('loading');
 
     // Click handler
     uploadArea.addEventListener('click', () => fileInput.click());
@@ -20,15 +21,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function highlight(e) {
         e.preventDefault();
         e.stopPropagation();
-        uploadArea.style.borderColor = 'var(--secondary-color)';
-        uploadArea.style.background = 'rgba(91, 164, 230, 0.1)';
+        uploadArea.classList.add('dragover');
     }
 
     function unhighlight(e) {
         e.preventDefault();
         e.stopPropagation();
-        uploadArea.style.borderColor = 'var(--primary-color)';
-        uploadArea.style.background = 'rgba(42, 92, 130, 0.05)';
+        uploadArea.classList.remove('dragover');
     }
 
     // Handle file drop
@@ -62,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // File validation
     function allowedFile(filename) {
         const ext = filename.split('.').pop().toLowerCase();
-        return ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'webp'].includes(ext);
+        return ['png', 'jpeg', 'gif', 'bmp', 'tiff', 'webp'].includes(ext);
     }
 
     // Preview image
@@ -98,11 +97,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Form submission handling
+    const form = document.querySelector('form');
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        loading.style.display = 'block';
+        
+        // Submit the form
+        form.submit();
+    });
+
     // Form validation
     (() => {
         'use strict'
         const forms = document.querySelectorAll('.needs-validation')
-        
         Array.from(forms).forEach(form => {
             form.addEventListener('submit', event => {
                 if (!form.checkValidity()) {
@@ -112,5 +120,5 @@ document.addEventListener('DOMContentLoaded', () => {
                 form.classList.add('was-validated')
             }, false)
         })
-    })();
+    })()
 });

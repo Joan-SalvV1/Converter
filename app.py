@@ -6,11 +6,6 @@ from io import BytesIO
 app = Flask(__name__, static_url_path='/static')
 app.secret_key = 'your_secret_key_here'
 
-# Configure upload folder
-UPLOAD_FOLDER = 'uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
 # Supported formats
 SUPPORTED_INPUT_FORMATS = {'png', 'jpeg', 'gif', 'bmp', 'tiff', 'webp'}
 SUPPORTED_OUTPUT_FORMATS = {
@@ -28,38 +23,45 @@ QUALITY_OPTIONS = {
     'webp': [10, 30, 50, 70, 90]
 }
 
-def convert_image(input_path, output_path, output_format, sizes=None):
+def convert_image(input_file, output_format, sizes=None):
     try:
-        with Image.open(input_path) as img:
-            # Convertir a RGB si es necesario
-            if img.mode != 'RGB':
-                img = img.convert('RGB')
+        # Leer la imagen desde el archivo
+        img = Image.open(input_file)
+        
+        # Convertir a RGB si es necesario
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
+        
+        # Crear un buffer para el archivo de salida
+        output_buffer = BytesIO()
+        
+        if output_format == 'ico':
+            # Convertir a ICO con múltiples tamaños
+            if sizes is None:
+                sizes = SUPPORTED_OUTPUT_FORMATS['ico']
             
-            if output_format == 'ico':
-                # Convertir a ICO con múltiples tamaños
-                if sizes is None:
-                    sizes = SUPPORTED_OUTPUT_FORMATS['ico']
-                
-                icon_sizes = [img.resize(s, Image.Resampling.LANCZOS) for s in sizes]
-                icon_sizes[0].save(
-                    output_path,
-                    format="ICO",
-                    append_images=icon_sizes[1:],
-                    quality=100,
-                    bitdepth=32
-                )
-            else:
-                # Convertir a otros formatos
-                if sizes:
-                    img = img.resize(sizes[0], Image.Resampling.LANCZOS)
-                
-                # Guardar con el formato correcto
-                img.save(output_path, format=output_format.upper())
-                
-            return True
+            icon_sizes = [img.resize(s, Image.Resampling.LANCZOS) for s in sizes]
+            icon_sizes[0].save(
+                output_buffer,
+                format="ICO",
+                append_images=icon_sizes[1:],
+                quality=100,
+                bitdepth=32
+            )
+        else:
+            # Convertir a otros formatos
+            if sizes:
+                img = img.resize(sizes[0], Image.Resampling.LANCZOS)
+            
+            # Guardar con el formato correcto
+            img.save(output_buffer, format=output_format.upper())
+            
+        # Mover el puntero al inicio del buffer
+        output_buffer.seek(0)
+        return output_buffer
     except Exception as e:
         flash(f'Error: {str(e)}', 'error')
-        return False
+        return None
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -84,24 +86,21 @@ def index():
                 flash('Invalid output format', 'error')
                 return redirect(request.url)
             
-            # Generar nombre de archivo único
-            filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-            output_filename = os.path.splitext(filename)[0] + f'.{output_format.lower()}'
-            file.save(filename)
+            # Convertir la imagen
+            output_buffer = convert_image(file, output_format, sizes)
             
-            if convert_image(filename, output_filename, output_format, sizes):
+            if output_buffer:
                 # Devolver el archivo convertido
                 return send_file(
-                    output_filename,
+                    output_buffer,
                     as_attachment=True,
-                    download_name=os.path.basename(output_filename)
+                    download_name=f'converted.{output_format.lower()}',
+                    mimetype=f'image/{output_format}'
                 )
                 
-            # Limpieza
-            os.remove(filename)
-            if os.path.exists(output_filename):
-                os.remove(output_filename)
-                
+            # Si hubo un error, redirigir
+            return redirect(request.url)
+    
     return render_template('index.html')
 
 def allowed_file(filename):

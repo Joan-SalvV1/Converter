@@ -1,71 +1,120 @@
+/* Variables de colores */
 :root {
-    --primary-color: #2A5C82;
-    --secondary-color: #5BA4E6;
-    --accent-color: #FF6B6B;
+    --primary-color: #2a5c82;
+    --secondary-color: #5b9fe6;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
 }
 
+/* Estilos generales */
 body {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
     min-height: 100vh;
 }
 
+/* Tarjeta principal */
 .converter-card {
-    background: white;
-    border-radius: 1rem;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    transition: transform 0.3s ease;
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    border: 1px solid rgba(42, 92, 130, 0.1);
+    transition: all 0.3s ease;
 }
 
 .converter-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
+/* Área de subida */
 .upload-area {
-    border: 2px dashed var(--primary-color);
-    border-radius: 0.75rem;
-    background: rgba(42, 92, 130, 0.05);
-    cursor: pointer;
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    border-color: #2a5c82;
     transition: all 0.3s ease;
 }
 
-.upload-area:hover {
-    background: rgba(42, 92, 130, 0.1);
-    border-color: var(--secondary-color);
+.upload-area.dragover {
+    background: linear-gradient(145deg, #e9f3ff 0%, #dfefff 100%) !important;
+    border-color: #5b9fe6 !important;
 }
 
+/* Selector de formato */
+.form-select {
+    border: 1px solid #dee2e6;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.form-select:focus {
+    border-color: #5b9fe6;
+    box-shadow: 0 0 0 0.25rem rgba(42, 92, 130, 0.25);
+}
+
+/* Opciones de tamaño */
 .size-option {
-    border: 2px solid #dee2e6;
-    border-radius: 0.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
     padding: 1rem;
-    margin: 0.5rem;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    cursor: pointer;
 }
 
-.size-option:hover {
-    border-color: var(--secondary-color);
-    background: rgba(91, 164, 230, 0.05);
+.size-option.active {
+    background: linear-gradient(145deg, #e9f3ff 0%, #dfefff 100%);
+    border-color: #5b9fe6;
 }
 
-.size-option.selected {
-    border-color: var(--primary-color);
-    background: rgba(42, 92, 130, 0.1);
-}
-
+/* Botón de conversión */
 .btn-primary {
-    background-color: var(--primary-color);
+    background: linear-gradient(145deg, #2a5c82 0%, #5b9fe6 100%);
     border: none;
-    padding: 0.75rem 2rem;
-    font-size: 1.1rem;
+    padding: 1rem 2rem;
+    border-radius: 50px;
     transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
-    background-color: var(--secondary-color);
-    transform: scale(1.05);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(42, 92, 130, 0.3);
 }
 
+/* Sección de características */
+.features-section {
+    margin-top: 4rem;
+}
+
+.feature-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Alertas */
+.alert {
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.alert i {
+    margin-right: 0.5rem;
+}
+
+/* Loading spinner */
+#loading {
+    margin-top: 2rem;
+}
+
+/* Preview de imagen */
 .preview-image {
-    max-width: 200px;
-    border-radius: 0.5rem;
-    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
 }
