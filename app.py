@@ -17,10 +17,11 @@ SUPPORTED_OUTPUT_FORMATS = {
     'ico': [(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)],
     'png': [(256, 256), (512, 512), (1024, 1024)],
     'jpg': [(256, 256), (512, 512), (1024, 1024)],
+    'jpeg': [(256, 256), (512, 512), (1024, 1024)],
     'webp': [(256, 256), (512, 512), (1024, 1024)],
     'bmp': [(256, 256), (512, 512), (1024, 1024)],
     'tiff': [(256, 256), (512, 512), (1024, 1024)],
-    'pdf': [(256, 256)]  # PDF solo soporta un tamaño
+    'pdf': [(256, 256)]
 }
 
 QUALITY_OPTIONS = {
@@ -28,7 +29,7 @@ QUALITY_OPTIONS = {
     'webp': [10, 30, 50, 70, 90]
 }
 
-def convert_image(input_path, output_path, output_format, quality=None, sizes=None):
+def convert_image(input_path, output_path, output_format, sizes=None):
     try:
         with Image.open(input_path) as img:
             # Convertir a RGB si es necesario
@@ -53,12 +54,8 @@ def convert_image(input_path, output_path, output_format, quality=None, sizes=No
                 if sizes:
                     img = img.resize(sizes[0], Image.Resampling.LANCZOS)
                 
-                # Aplicar calidad si es necesario
-                save_kwargs = {}
-                if quality is not None:
-                    save_kwargs['quality'] = quality
-                
-                img.save(output_path, format=output_format.upper(), **save_kwargs)
+                # Guardar con el formato correcto
+                img.save(output_path, format=output_format.upper())
                 
             return True
     except Exception as e:
@@ -80,7 +77,6 @@ def index():
         if file and allowed_file(file.filename):
             # Obtener parámetros del formulario
             output_format = request.form.get('output_format')
-            quality = int(request.form.get('quality', 90)) if output_format in QUALITY_OPTIONS else None
             selected_sizes = request.form.getlist('sizes')
             sizes = [tuple(map(int, size.split(','))) for size in selected_sizes] if selected_sizes else None
             
@@ -88,17 +84,13 @@ def index():
             if output_format not in SUPPORTED_OUTPUT_FORMATS:
                 flash('Invalid output format', 'error')
                 return redirect(request.url)
-                
-            if quality is not None and quality not in QUALITY_OPTIONS[output_format]:
-                flash('Invalid quality value', 'error')
-                return redirect(request.url)
             
             # Generar nombre de archivo único
             filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
             output_filename = os.path.splitext(filename)[0] + f'.{output_format.lower()}'
             file.save(filename)
             
-            if convert_image(filename, output_filename, output_format, quality, sizes):
+            if convert_image(filename, output_filename, output_format, sizes):
                 # Devolver el archivo convertido
                 return send_file(
                     output_filename,

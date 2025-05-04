@@ -49,14 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const file = files[0];
         
         if (file && allowedFile(file.name)) {
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            fileInput.files = dataTransfer.files;
-            
-            previewContainer.classList.remove('d-none');
-            previewImage.src = URL.createObjectURL(file);
-            
-            document.querySelector('form').classList.remove('was-validated');
+            fileInput.files = files;
+            previewFile(file);
         }
     }
 
@@ -67,16 +61,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // File validation
     function allowedFile(filename) {
-        return filename.toLowerCase().endsWith('.png');
+        const ext = filename.split('.').pop().toLowerCase();
+        return ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'webp'].includes(ext);
+    }
+
+    // Preview image
+    function previewFile(file) {
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                previewContainer.classList.remove('d-none');
+            };
+            reader.readAsDataURL(file);
+        }
     }
 
     // Size selection styling
     document.querySelectorAll('.size-option').forEach(option => {
         option.addEventListener('click', () => {
             const checkbox = option.querySelector('input[type="checkbox"]');
-            checkbox.checked = !checkbox.checked;
-            option.classList.toggle('selected', checkbox.checked);
+            option.classList.toggle('active', checkbox.checked);
         });
+    });
+
+    // Output format selection styling
+    document.querySelector('select[name="output_format"]').addEventListener('change', (e) => {
+        const selected = e.target.value;
+        const sizeOptions = document.getElementById('size-options');
+        
+        // Hide size options for PDF since it only supports one size
+        if (selected === 'pdf') {
+            sizeOptions.style.display = 'none';
+        } else {
+            sizeOptions.style.display = 'block';
+        }
     });
 
     // Form validation
