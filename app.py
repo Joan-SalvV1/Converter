@@ -12,11 +12,10 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Supported formats
-SUPPORTED_INPUT_FORMATS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'webp'}
+SUPPORTED_INPUT_FORMATS = {'png', 'jpeg', 'gif', 'bmp', 'tiff', 'webp'}
 SUPPORTED_OUTPUT_FORMATS = {
     'ico': [(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)],
     'png': [(256, 256), (512, 512), (1024, 1024)],
-    'jpg': [(256, 256), (512, 512), (1024, 1024)],
     'jpeg': [(256, 256), (512, 512), (1024, 1024)],
     'webp': [(256, 256), (512, 512), (1024, 1024)],
     'bmp': [(256, 256), (512, 512), (1024, 1024)],
