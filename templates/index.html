@@ -8,15 +8,26 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='img/site.webmanifest') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}" type="image/x-icon">
 </head>
 <body>
     <div class="container py-5">
         <div class="converter-card p-4 p-lg-5 mx-auto shadow-lg rounded-4" style="max-width: 800px;">
             <div class="text-center mb-5">
+                <div class="logo-container">
+                    <img src="{{ url_for('static', filename='img/android-chrome-512x512.png') }}" 
+                         alt="Cheetah Suite Logo" 
+                         class="app-logo">
+                </div>
                 <h1 class="display-5 fw-bold mb-3 text-primary">
-                    <i class="fas fa-file-image me-2"></i>Cheetah Suite Pro
+                    <i class="fas me-2"></i>Cheetah Suite Pro
                 </h1>
-                    <p class="lead text-muted">Image conversions</p>
+                <p class="lead text-muted">Image conversions</p>
             </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -31,26 +42,29 @@
                 {% endif %}
             {% endwith %}
 
-            <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+            <form id="converter-form" method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
                 <div class="mb-4">
                     <label class="form-label fw-bold mb-3">Upload Image File</label>
-                    <div class="upload-area p-5 text-center border border-2 border-primary rounded-4" 
-                         style="background: rgba(42, 92, 130, 0.05); transition: all 0.3s ease;"
-                         onclick="document.getElementById('file').click()">
+                    <div class="upload-area p-5 text-center">
                         <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
                         <h5 class="mb-2">Drag & Drop or Click to Upload</h5>
                         <p class="text-muted small mb-0">Supported formats: .png, .jpg, .gif, .bmp, .tiff, .webp (Max 10MB)</p>
-                        <input type="file" class="form-control d-none" name="file" id="file" accept=".png,.jpg,.jpeg,.gif,.bmp,.tiff,.webp" required>
                     </div>
+                    <input type="file" class="form-control d-none" name="file" id="file" accept=".png,.jpg,.jpeg,.gif,.bmp,.tiff,.webp" required>
                     <div id="preview-container" class="mt-3 text-center d-none">
-                        <img id="preview-image" class="preview-image" src="#" alt="Preview">
+                        <img id="preview-image" class="preview-image img-fluid rounded" src="#" alt="Preview">
                     </div>
+                </div>
+
+                <div class="separator my-4">
+                    <span class="px-3 bg-white"></span>
                 </div>
 
                 <div class="mb-4">
                     <label class="form-label fw-bold mb-3">Select Output Format</label>
                     <select class="form-select form-select-lg" name="output_format" required>
-                        <option value="ico">ICO (Icon)</option>
+                        <option value="">Select format...</option>
+                        <option value="ico">ICO</option>
                         <option value="png">PNG</option>
                         <option value="jpeg">JPEG</option>
                         <option value="webp">WEBP</option>
@@ -60,39 +74,6 @@
                     </select>
                 </div>
 
-                <div class="mb-4" id="size-options">
-                    <label class="form-label fw-bold mb-3">Select Output Sizes</label>
-                    <div class="row g-3">
-                        <div class="col-6 col-md-4">
-                            <label class="size-option d-block">
-                                <input type="checkbox" name="sizes" value="256,256" class="d-none">
-                                <span class="d-flex align-items-center">
-                                    <i class="fas fa-square me-2"></i>
-                                    256x256
-                                </span>
-                            </label>
-                        </div>
-                        <div class="col-6 col-md-4">
-                            <label class="size-option d-block">
-                                <input type="checkbox" name="sizes" value="512,512" class="d-none">
-                                <span class="d-flex align-items-center">
-                                    <i class="fas fa-square me-2"></i>
-                                    512x512
-                                </span>
-                            </label>
-                        </div>
-                        <div class="col-6 col-md-4">
-                            <label class="size-option d-block">
-                                <input type="checkbox" name="sizes" value="1024,1024" class="d-none">
-                                <span class="d-flex align-items-center">
-                                    <i class="fas fa-square me-2"></i>
-                                    1024x1024
-                                </span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="text-center">
                     <button type="submit" class="btn btn-primary btn-lg px-5 py-3 rounded-pill">
                         <i class="fas fa-convert me-2"></i>Convert Now
@@ -100,40 +81,58 @@
                 </div>
             </form>
 
+            <div id="loading" class="text-center mt-4 d-none">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Converting...</span>
+                </div>
+                <p class="text-muted mt-2">Converting your image...</p>
+            </div>
+
+            <!-- Iframe oculto para manejar la descarga -->
+            <iframe id="download-frame" style="display:none;"></iframe>
+
             <div class="features-section mt-5" data-aos="fade-up">
                 <div class="row g-4">
                     <div class="col-md-4">
                         <div class="feature-card p-4 text-center">
-                            <i class="fas fa-file-image fa-2x text-primary mb-3"></i>
+                            <div class="icon-circle icon-blue">
+                                <i class="fas fa-file-image fa-2x"></i>
+                            </div>
                             <h5 class="mb-3">Multiple Formats</h5>
                             <p class="text-muted">Supports all major image formats</p>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="feature-card p-4 text-center">
-                            <i class="fas fa-magic fa-2x text-primary mb-3"></i>
+                            <div class="icon-circle icon-orange">
+                                <i class="fas fa-magic fa-2x"></i>
+                            </div>
                             <h5 class="mb-3">Instant Conversion</h5>
                             <p class="text-muted">Fast and reliable conversion process</p>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="feature-card p-4 text-center">
-                            <i class="fas fa-shield-alt fa-2x text-primary mb-3"></i>
+                            <div class="icon-circle icon-green">
+                                <i class="fas fa-shield-alt fa-2x"></i>
+                            </div>
                             <h5 class="mb-3">Secure Upload</h5>
-                            <p class="text-muted">Your files are safe with us</p>
+                            <p class="text-muted">We don't store your files</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="text-center mt-5">
-                <div class="row justify-content-center">
-                    <div class="col-auto">
-                        <p class="mb-1 small text-muted"> 2025 Cheeta . All rights reserved.</p>
-                        <p class="mb-0 small text-muted">Secure cloud-based conversion · Enterprise-grade infrastructure</p>
+            <footer class="mt-5 py-4 bg-light">
+                <div class="text-center">
+                    <div class="row justify-content-center">
+                        <div class="col-auto">
+                            <p class="mb-1 small text-muted">© 2025 Cheetah Suite. All rights reserved.</p>
+                            <p class="mb-0 small text-muted">Secure cloud-based conversion · Enterprise-grade infrastructure</p>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </footer>
         </div>
     </div>
 

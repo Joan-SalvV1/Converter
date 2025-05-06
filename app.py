@@ -7,53 +7,45 @@ app = Flask(__name__, static_url_path='/static')
 app.secret_key = 'your_secret_key_here'
 
 # Supported formats
-SUPPORTED_INPUT_FORMATS = {'png', 'jpeg', 'gif', 'bmp', 'tiff', 'webp'}
-SUPPORTED_OUTPUT_FORMATS = {
-    'ico': [(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)],
-    'png': [(256, 256), (512, 512), (1024, 1024)],
-    'jpeg': [(256, 256), (512, 512), (1024, 1024)],
-    'webp': [(256, 256), (512, 512), (1024, 1024)],
-    'bmp': [(256, 256), (512, 512), (1024, 1024)],
-    'tiff': [(256, 256), (512, 512), (1024, 1024)],
-    'pdf': [(256, 256)]
-}
+SUPPORTED_INPUT_FORMATS = {'png', 'jpeg', 'jpg', 'gif', 'bmp', 'tiff', 'webp'}
+SUPPORTED_OUTPUT_FORMATS = {'ico', 'png', 'jpeg', 'webp', 'bmp', 'tiff', 'pdf'}
 
 QUALITY_OPTIONS = {
     'jpeg': [10, 30, 50, 70, 90],
     'webp': [10, 30, 50, 70, 90]
 }
 
-def convert_image(input_file, output_format, sizes=None):
+def convert_image(input_file, output_format):
     try:
         # Leer la imagen desde el archivo
         img = Image.open(input_file)
-        
-        # Convertir a RGB si es necesario
-        if img.mode != 'RGB':
-            img = img.convert('RGB')
         
         # Crear un buffer para el archivo de salida
         output_buffer = BytesIO()
         
         if output_format == 'ico':
-            # Convertir a ICO con múltiples tamaños
-            if sizes is None:
-                sizes = SUPPORTED_OUTPUT_FORMATS['ico']
+            # Para ICO, necesitamos asegurarnos de que la imagen sea cuadrada y tenga un tamaño adecuado
+            max_size = 256
+            if img.size[0] > max_size or img.size[1] > max_size:
+                # Redimensionar manteniendo la relación de aspecto
+                img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
             
-            icon_sizes = [img.resize(s, Image.Resampling.LANCZOS) for s in sizes]
-            icon_sizes[0].save(
-                output_buffer,
-                format="ICO",
-                append_images=icon_sizes[1:],
-                quality=100,
-                bitdepth=32
-            )
+            # Crear una imagen cuadrada con fondo transparente
+            size = max(img.size)
+            ico_img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+            
+            # Pegar la imagen centrada en el lienzo cuadrado
+            x = (size - img.size[0]) // 2
+            y = (size - img.size[1]) // 2
+            ico_img.paste(img, (x, y), img if img.mode == 'RGBA' else None)
+            
+            # Guardar como ICO
+            ico_img.save(output_buffer, format='ICO', sizes=[(size, size)])
         else:
-            # Convertir a otros formatos
-            if sizes:
-                img = img.resize(sizes[0], Image.Resampling.LANCZOS)
-            
-            # Guardar con el formato correcto
+            # Para otros formatos, convertir a RGB si es necesario (excepto para formatos que soportan transparencia)
+            if img.mode != 'RGB' and output_format not in ['png', 'webp', 'tiff']:
+                img = img.convert('RGB')
+            # Guardar manteniendo el tamaño original
             img.save(output_buffer, format=output_format.upper())
             
         # Mover el puntero al inicio del buffer
@@ -78,8 +70,6 @@ def index():
         if file and allowed_file(file.filename):
             # Obtener parámetros del formulario
             output_format = request.form.get('output_format')
-            selected_sizes = request.form.getlist('sizes')
-            sizes = [tuple(map(int, size.split(','))) for size in selected_sizes] if selected_sizes else None
             
             # Validar parámetros
             if output_format not in SUPPORTED_OUTPUT_FORMATS:
@@ -87,19 +77,31 @@ def index():
                 return redirect(request.url)
             
             # Convertir la imagen
-            output_buffer = convert_image(file, output_format, sizes)
+            output_buffer = convert_image(file, output_format)
             
             if output_buffer:
                 # Devolver el archivo convertido
-                return send_file(
-                    output_buffer,
-                    as_attachment=True,
-                    download_name=f'converted.{output_format.lower()}',
-                    mimetype=f'image/{output_format}'
-                )
+                # Configurar el mimetype correcto según el formato
+                if output_format == 'ico':
+                    mimetype = 'image/x-icon'
+                elif output_format == 'pdf':
+                    mimetype = 'application/pdf'
+                else:
+                    mimetype = f'image/{output_format}'
                 
-            # Si hubo un error, redirigir
-            return redirect(request.url)
+                try:
+                    return send_file(
+                        output_buffer,
+                        as_attachment=True,
+                        download_name=f'converted.{output_format.lower()}',
+                        mimetype=mimetype
+                    )
+                except Exception as e:
+                    app.logger.error(f"Error sending file: {str(e)}")
+                    flash(f'Error al enviar el archivo: {str(e)}', 'error')
+                    return redirect(request.url)
+            else:
+                flash('Error al convertir la imagen. Por favor, intenta con otra imagen o formato.', 'error')
     
     return render_template('index.html')
 

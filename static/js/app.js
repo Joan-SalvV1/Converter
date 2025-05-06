@@ -4,9 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadArea = document.querySelector('.upload-area');
     const previewContainer = document.getElementById('preview-container');
     const previewImage = document.getElementById('preview-image');
-    const loading = document.getElementById('loading');
+    const loadingElement = document.getElementById('loading');
+    const form = document.getElementById('converter-form');
+    const downloadFrame = document.getElementById('download-frame');
 
-    // Click handler
+    // Click handler for upload area
     uploadArea.addEventListener('click', () => fileInput.click());
 
     // Drag and drop handlers
@@ -50,18 +52,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (file && allowedFile(file.name)) {
             fileInput.files = files;
             previewFile(file);
+        } else if (file) {
+            alert('Unsupported file format. Please select an image in PNG, JPEG, GIF, BMP, TIFF, or WEBP format.');
         }
     }
 
     // File input change handler
     fileInput.addEventListener('change', function(e) {
-        handleFiles(this.files);
+        if (this.files.length > 0) {
+            handleFiles(this.files);
+        }
     });
 
     // File validation
     function allowedFile(filename) {
         const ext = filename.split('.').pop().toLowerCase();
-        return ['png', 'jpeg', 'gif', 'bmp', 'tiff', 'webp'].includes(ext);
+        return ['png', 'jpeg', 'jpg', 'gif', 'bmp', 'tiff', 'webp'].includes(ext);
     }
 
     // Preview image
@@ -76,35 +82,97 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Size selection styling
-    document.querySelectorAll('.size-option').forEach(option => {
-        option.addEventListener('click', () => {
-            const checkbox = option.querySelector('input[type="checkbox"]');
-            option.classList.toggle('active', checkbox.checked);
-        });
-    });
-
     // Output format selection styling
     document.querySelector('select[name="output_format"]').addEventListener('change', (e) => {
         const selected = e.target.value;
-        const sizeOptions = document.getElementById('size-options');
-        
-        // Hide size options for PDF since it only supports one size
-        if (selected === 'pdf') {
-            sizeOptions.style.display = 'none';
-        } else {
-            sizeOptions.style.display = 'block';
-        }
     });
 
     // Form submission handling
-    const form = document.querySelector('form');
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', function(e) {
         e.preventDefault();
-        loading.style.display = 'block';
         
-        // Submit the form
-        form.submit();
+        // Check if file is selected
+        if (!fileInput.files.length) {
+            alert('Please select an image to convert.');
+            return;
+        }
+
+        // Check if output format is selected
+        const outputFormat = document.querySelector('select[name="output_format"]').value;
+        if (!outputFormat) {
+            alert('Please select an output format.');
+            return;
+        }
+
+        // Show loading
+        if (loadingElement) {
+            loadingElement.classList.remove('d-none');
+        }
+        
+        // Usar fetch para una mejor compatibilidad y manejo de errores
+        const formData = new FormData(form);
+        
+        fetch(form.action || window.location.href, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Server response error');
+            }
+            
+            // Obtener el nombre del archivo del header Content-Disposition
+            const contentDisposition = response.headers.get('content-disposition');
+            let filename = 'converted';
+            
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1].replace(/['"]/g, '');
+                }
+            }
+            
+            // Si no se pudo obtener el nombre del header, usar el formato seleccionado
+            if (filename === 'converted') {
+                const outputFormat = document.querySelector('select[name="output_format"]').value;
+                const originalFile = fileInput.files[0].name;
+                const originalName = originalFile.lastIndexOf('.') > -1 
+                    ? originalFile.substring(0, originalFile.lastIndexOf('.'))
+                    : originalFile;
+                filename = `${originalName}.${outputFormat}`;
+            }
+            
+            return response.blob().then(blob => ({
+                blob,
+                filename
+            }));
+        })
+        .then(({ blob, filename }) => {
+            // Crear un enlace temporal para la descarga
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            
+            // Limpiar
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            // Ocultar el indicador de carga
+            if (loadingElement) {
+                loadingElement.classList.add('d-none');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (loadingElement) {
+                loadingElement.classList.add('d-none');
+            }
+            alert('There was an error processing the image. Please try again.');
+        });
     });
 
     // Form validation

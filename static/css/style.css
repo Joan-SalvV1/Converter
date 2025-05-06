@@ -30,11 +30,65 @@ body {
     background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
     border-color: #2a5c82;
     transition: all 0.3s ease;
+    border: 2px dashed #0d6efd;  /* Borde punteado */
+    padding: 2.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    background: rgba(13, 110, 253, 0.05);
+    border-radius: 0.5rem;
 }
 
 .upload-area.dragover {
     background: linear-gradient(145deg, #e9f3ff 0%, #dfefff 100%) !important;
     border-color: #5b9fe6 !important;
+}
+
+/* Animación para el ícono de subida */
+.upload-area i.fa-cloud-upload-alt {
+    animation: float 2s ease-in-out infinite;
+    display: block;
+    margin: 0 auto 1rem;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Separador decorativo antes del selector */
+.separator {
+    position: relative;
+    margin: 2.5rem 0;
+    text-align: center;
+    color: #6c757d;
+}
+
+.separator::before,
+.separator::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 30%;
+    height: 1px;
+    background-color: #dee2e6;
+}
+
+.separator::before {
+    left: 0;
+}
+
+.separator::after {
+    right: 0;
+}
+
+/* Asegurar espacio adicional debajo del área de arrastre */
+#file {
+    margin-bottom: 1.5rem;
 }
 
 /* Selector de formato */
@@ -117,4 +171,81 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-top: 1rem;
+}
+
+/* Logo styles */
+.logo-container {
+    margin-bottom: 1rem;
+}
+
+.app-logo {
+    height: 80px;
+    width: auto;
+    border-radius: 50%;
+    border: 3px solid #0d6efd; /* Color primario de Bootstrap */
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+}
+
+.app-logo:hover {
+    transform: scale(1.05);
+}
+
+/* Iconos con estilos mejorados */
+.icon-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin-bottom: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+.icon-circle:hover {
+    transform: translateY(-5px);
+}
+
+.icon-blue {
+    background-color: #e6f0ff;
+    color: #0d6efd;
+}
+
+.icon-orange {
+    background-color: #fff3e6;
+    color: #fd7e14;
+}
+
+.icon-green {
+    background-color: #e6fff0;
+    color: #20c997;
+}
+
+.feature-card {
+    border-radius: 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para el footer */
+footer {
+    background-color: #f8f9fa;  /* Gris claro de Bootstrap */
+    border-top: 1px solid #e9ecef;  /* Borde sutil en la parte superior */
+    margin-top: 3rem;  /* Espacio antes del footer */
+}
+
+/* Opcional: para que el footer siempre esté abajo */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    flex: 1;
 }
